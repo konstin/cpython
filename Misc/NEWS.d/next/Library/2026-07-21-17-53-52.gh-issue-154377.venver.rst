@@ -1,0 +1,2 @@
+Fail at startup when the ``python-version`` in a virtual
+environment's ``pyvenv.cfg`` does not match the running interpreter.

@@ -982,7 +982,7 @@ def _venv(state):
     if candidate_conf:
         virtual_conf = candidate_conf
         system_site = "true"
-        version, version_info = None, None
+        version, version_info, python_version = None, None, None
         # Issue 25185: Use UTF-8, as that's what the venv module uses when
         # writing the file.
         with open(virtual_conf, encoding='utf-8') as f:
@@ -999,31 +999,46 @@ def _venv(state):
                         version = value
                     elif key == 'version_info':
                         version_info = value
+                    elif key == 'python-version':
+                        python_version = value
 
-        for field_name, field_value in [
-            ('version',version), ('version_info',version_info)
+        for field_name, field_value, should_error in [
+            # Run the fatal check first.
+            ('python_version', python_version, True),
+            ('version',version, False),
+            ('version_info',version_info, False),
         ]:
-            if field_value is not None:
-                try:
-                    major, minor = map(int, field_value.split(".")[:2])
-                except (ValueError, AttributeError):
-                    _warn(
-                        f"Malformed {field_name} string in pyvenv.cfg: {field_value!r}",
-                        RuntimeWarning,
-                    )
-                else:
-                    if (
-                        major == sys.version_info.major
-                        and minor != sys.version_info.minor
-                    ):
-                        _warn(
-                            f"This virtual environment was created for Python {major}.{minor}, "
-                            f"but the current interpreter is Python "
-                            f"{sys.version_info.major}.{sys.version_info.minor}. "
-                            "Consider running `python -m venv --upgrade` to update the environment.",
-                            RuntimeWarning,
-                        )
-                        break
+            if field_value is None:
+                continue
+            try:
+                major, minor = map(int, field_value.split(".")[:2])
+            except (ValueError, AttributeError):
+                _warn(
+                    f"Malformed {field_name} string in pyvenv.cfg: {field_value!r}",
+                    RuntimeWarning,
+                )
+                continue
+            if (
+                major == sys.version_info.major
+                and minor == sys.version_info.minor
+            ):
+                continue
+            if should_error:
+                raise RuntimeError(
+                    f"This virtual environment was created for Python {major}.{minor}, "
+                    f"but the current interpreter is Python "
+                    f"{sys.version_info.major}.{sys.version_info.minor}. "
+                    "Consider running `python -m venv --upgrade` to update the environment.",
+                )
+            else:
+                _warn(
+                    f"This virtual environment was created for Python {major}.{minor}, "
+                    f"but the current interpreter is Python "
+                    f"{sys.version_info.major}.{sys.version_info.minor}. "
+                    "Consider running `python -m venv --upgrade` to update the environment.",
+                    RuntimeWarning,
+                )
+                break
 
         if sys.prefix != site_prefix:
             _warn(
