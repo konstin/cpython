@@ -232,6 +232,8 @@ class EnvBuilder:
                 incl = 'false'
             f.write('include-system-site-packages = %s\n' % incl)
             f.write('version = %d.%d.%d\n' % sys.version_info[:3])
+            f.write('python-version = %d.%d\n' % (sys.version_info.major,
+                                                  sys.version_info.minor))
             if self.prompt is not None:
                 f.write(f'prompt = {self.prompt!r}\n')
             f.write('executable = %s\n' % os.path.realpath(sys.executable))

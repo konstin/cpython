@@ -146,6 +146,9 @@ class BasicTest(BaseTest):
         self.assertIn('home = %s' % path, data)
         self.assertIn('executable = %s' %
                       os.path.realpath(sys.executable), data)
+        self.assertIn("python-version = %d.%d" % (sys.version_info.major,
+                                                  sys.version_info.minor),
+                      data)
         copies = '' if os.name=='nt' else ' --copies'
         cmd = (f'command = {sys.executable} -m venv{copies} --without-pip '
                f'--without-scm-ignore-files {self.env_dir}')
