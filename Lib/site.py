@@ -1018,19 +1018,18 @@ def _venv(state):
                     RuntimeWarning,
                 )
                 continue
-            if (
-                major == sys.version_info.major
-                and minor == sys.version_info.minor
-            ):
-                continue
             if should_error:
-                raise RuntimeError(
-                    f"This virtual environment was created for Python {major}.{minor}, "
-                    f"but the current interpreter is Python "
-                    f"{sys.version_info.major}.{sys.version_info.minor}. "
-                    "Consider running `python -m venv --upgrade` to update the environment.",
-                )
-            else:
+                if (major, minor) != sys.version_info[:2]:
+                    raise RuntimeError(
+                        f"This virtual environment was created for Python {major}.{minor}, "
+                        f"but the current interpreter is Python "
+                        f"{sys.version_info.major}.{sys.version_info.minor}. "
+                        "Consider running `python -m venv --upgrade` to update the environment.",
+                    )
+            elif (
+                major == sys.version_info.major
+                and minor != sys.version_info.minor
+            ):
                 _warn(
                     f"This virtual environment was created for Python {major}.{minor}, "
                     f"but the current interpreter is Python "
