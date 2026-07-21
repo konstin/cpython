@@ -1,0 +1,2 @@
+Add a ``python-version`` key to ``pyvenv.cfg`` files created by :mod:`venv`.
+This implements :pep:`838`.
